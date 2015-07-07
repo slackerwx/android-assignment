@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:context=".MainActivity">
+    <item
+        android:id="@+id/action_filtro_data"
+        android:orderInCategory="100"
+        android:title="@string/filtro_data_publicacao"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_filtro_likes"
+        android:orderInCategory="100"
+        android:title="@string/filtro_likes"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_filtro_distancia"
+        android:orderInCategory="100"
+        android:title="@string/filtro_distancia"
+        app:showAsAction="never"/>
+</menu>

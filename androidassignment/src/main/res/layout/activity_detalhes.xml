@@ -1,0 +1,134 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context="slackerwx.com.br.androidassignment.activities.DetalhesActivity">
+
+    <ImageView
+        android:id="@+id/imagem_detalhe"
+        android:layout_width="fill_parent"
+        android:layout_height="300dp"
+        />
+
+    <RelativeLayout
+        android:id="@+id/layout_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imagem_detalhe"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:background="@drawable/borda_arrendodada">
+
+        <TextView
+            android:id="@+id/label_likes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Likes: "
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_likes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/label_likes"
+            />
+
+        <TextView
+            android:id="@+id/label_user_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_likes"
+            android:text="User ID: "
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_user_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_likes"
+            android:layout_toRightOf="@+id/label_user_id"
+            />
+
+        <TextView
+            android:id="@+id/label_user_full_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_user_id"
+            android:text="User Full Name: "
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_user_full_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_user_id"
+            android:layout_toRightOf="@id/label_user_full_name"
+            />
+
+        <TextView
+            android:id="@+id/label_location_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_user_full_name"
+            android:text="Location Name: "
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_location_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_user_full_name"
+            android:layout_toRightOf="@id/label_location_name"
+            />
+
+        <TextView
+            android:id="@+id/label_location_lat_lng"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_location_name"
+            android:text="Location LatLng: "
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_location_lat_lng"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_location_name"
+            android:layout_toRightOf="@id/label_location_lat_lng"
+            />
+
+        <TextView
+            android:id="@+id/label_tags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_location_lat_lng"
+            android:text="Tags: "
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_tags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_location_lat_lng"
+            android:layout_toRightOf="@id/label_tags"
+            />
+
+        <TextView
+            android:id="@+id/label_data_criacao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_tags"
+            android:text="Data de criação: "
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_data_criacao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_tags"
+            android:layout_toRightOf="@id/label_data_criacao"
+            />
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
