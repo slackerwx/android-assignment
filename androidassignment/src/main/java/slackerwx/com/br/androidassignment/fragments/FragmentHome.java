@@ -116,11 +116,14 @@ public class FragmentHome extends Fragment implements Transacao {
         String latLng = "";
         String locationName = "";
         if (location != null) {
-            locationName = media.getLocation().getName();
+            locationName = location.getName();
 
-            final double latitude = media.getLocation().getLatitude();
-            final double longitude = media.getLocation().getLongitude();
-            latLng = String.valueOf(latitude) + " " + String.valueOf(longitude);
+            Double lat = location.getLatitude();
+            Double longi = location.getLongitude();
+
+            final String latitude =  lat != null ? Double.toString(lat) : "";
+            final String longitude = longi !=null ? Double.toString(longi) : "";
+            latLng = latitude  + " " + longitude;
         }
 
 
