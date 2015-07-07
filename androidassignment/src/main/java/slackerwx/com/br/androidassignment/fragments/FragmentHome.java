@@ -14,8 +14,6 @@ import android.widget.ProgressBar;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -26,10 +24,8 @@ import slackerwx.com.br.androidassignment.R;
 import slackerwx.com.br.androidassignment.activities.DetalhesActivity;
 import slackerwx.com.br.androidassignment.activities.OnMediaClickEvent;
 import slackerwx.com.br.androidassignment.adapters.ImageAdapter;
+import slackerwx.com.br.androidassignment.db.OfflinePostMapping;
 import slackerwx.com.br.androidassignment.db.bo.OfflinePostBo;
-import slackerwx.com.br.androidassignment.db.domain.Image;
-import slackerwx.com.br.androidassignment.db.domain.Images;
-import slackerwx.com.br.androidassignment.db.domain.Location;
 import slackerwx.com.br.androidassignment.db.domain.Media;
 import slackerwx.com.br.androidassignment.db.domain.OfflinePost;
 import slackerwx.com.br.androidassignment.db.domain.RecentByTag;
@@ -37,7 +33,6 @@ import slackerwx.com.br.androidassignment.rest.ServiceGenerator;
 import slackerwx.com.br.androidassignment.rest.Transacao;
 import slackerwx.com.br.androidassignment.rest.TransacaoTask;
 import slackerwx.com.br.androidassignment.rest.endpoints.TagEndpoints;
-import slackerwx.com.br.androidassignment.utils.DateUtils;
 
 /**
  * Created by slackerwx on 07/07/15.
@@ -45,13 +40,16 @@ import slackerwx.com.br.androidassignment.utils.DateUtils;
 public class FragmentHome extends Fragment implements Transacao {
 
     private static final String MODO_EXIBICAO = "modoExibicao";
-
+    private static final int ORDENAR_LIKES = 0;
+    private static final int ORDENAR_DATA = 1;
+    private static final int ORDENAR_DISTANCIA = 2;
     @Bind(R.id.gridview) GridView mGridView;
     @Bind(R.id.loading_circular) ProgressBar mProgressBar;
-
+    private int tipoOrdenacao = ORDENAR_LIKES;
     private ImageAdapter mImageAdapter;
     private ArrayList<OfflinePost> posts = new ArrayList<>();
     private String tipoExibicao;
+
 
     public FragmentHome() {
 
@@ -105,50 +103,6 @@ public class FragmentHome extends Fragment implements Transacao {
         OfflinePostBo.getInstance().criarOuAtualizar(post);
     }
 
-    private OfflinePost getOfflinePost(Media media) {
-        Images images = media.getImages();
-        Image standardResolution = images.getStandardResolution();
-        final String imageUrl = standardResolution.getUrl();
-
-
-        Location location = media.getLocation();
-
-        String latLng = "";
-        String locationName = "";
-        if (location != null) {
-            locationName = location.getName();
-
-            Double lat = location.getLatitude();
-            Double longi = location.getLongitude();
-
-            final String latitude =  lat != null ? Double.toString(lat) : "";
-            final String longitude = longi !=null ? Double.toString(longi) : "";
-            latLng = latitude  + " " + longitude;
-        }
-
-
-        List<String> tags = media.getTags();
-
-        StringBuilder sb = new StringBuilder();
-        for (String tag : tags) {
-            sb.append("#");
-            sb.append(tag);
-            sb.append(" ");
-        }
-
-        final String userFullName = media.getUser().getUsername();
-        final String userId = media.getUser().getId();
-        final String allTags = sb.toString();
-        final String likesCount = String.valueOf(media.getLikes().getCount());
-        final String createdTime = DateUtils.timestampToStringDate(media.getCreatedTime());
-        final String imageThumbnailUrl = media.getImages().getThumbnail().getUrl();
-        final String username = media.getUser().getUsername();
-        final String id = media.getId();
-
-        return new OfflinePost(id, imageUrl, userFullName, userId, allTags, createdTime, latLng, locationName, likesCount,
-                imageThumbnailUrl, username);
-    }
-
 
     @Override
     public void executar() throws Exception {
@@ -158,11 +112,6 @@ public class FragmentHome extends Fragment implements Transacao {
                 TagEndpoints client = ServiceGenerator.createService(TagEndpoints.class, Constants.APIURL);
 
                 String clientId = getResources().getString(R.string.instagram_client_id);
-//                Long minTimestamp = null;
-//                Long maxTimestamp = null;
-//                Integer distanceInKm = 1000;
-//                Double latitude = -23.5626773;
-//                Double longitude = -46.6551163;
 
                 String tagName = "saopaulocity";
                 RecentByTag search = client.getRecent(tagName, clientId, null, null);
@@ -177,23 +126,25 @@ public class FragmentHome extends Fragment implements Transacao {
                 break;
         }
 
-
         mImageAdapter = new ImageAdapter(getActivity(), posts);
+        aplicarFiltroOrdenacao(posts, tipoOrdenacao);
 
     }
+
 
     private ArrayList<OfflinePost> mediaListToOfflinePosts(ArrayList<Media> mediaList) {
 
         ArrayList<OfflinePost> posts = new ArrayList<>();
 
         for (Media media : mediaList) {
-            OfflinePost post = getOfflinePost(media);
+            OfflinePost post = OfflinePostMapping.getInstance().getOfflinePost(media);
             posts.add(post);
         }
 
         return posts;
 
     }
+
 
     @Override
     public void atualizarView() {
@@ -212,28 +163,46 @@ public class FragmentHome extends Fragment implements Transacao {
         int id = item.getItemId();
 
         if (id == R.id.action_filtro_data) {
-            Collections.sort(posts, new Comparator<OfflinePost>() {
-                @Override
-                public int compare(OfflinePost lhs, OfflinePost rhs) {
-                    return rhs.getCreatedTime().compareTo(lhs.getCreatedTime());
-                }
-            });
-            mImageAdapter.notifyDataSetChanged();
+            tipoOrdenacao = ORDENAR_DATA;
+
+            aplicarFiltroOrdenacao(posts, tipoOrdenacao);
+
             return true;
         } else if (id == R.id.action_filtro_distancia) {
+            tipoOrdenacao = ORDENAR_DISTANCIA;
+
+            aplicarFiltroOrdenacao(posts, tipoOrdenacao);
+
             return true;
         } else if (id == R.id.action_filtro_likes) {
-            Collections.sort(posts, new Comparator<OfflinePost>() {
-                @Override
-                public int compare(OfflinePost lhs, OfflinePost rhs) {
-                    return rhs.getLikesCount().compareTo(lhs.getLikesCount());
-                }
-            });
-            mImageAdapter.notifyDataSetChanged();
+            tipoOrdenacao = ORDENAR_LIKES;
+
+            aplicarFiltroOrdenacao(posts, tipoOrdenacao);
+
             return true;
         }
 
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void aplicarFiltroOrdenacao(ArrayList<OfflinePost> posts, int tipoOrdenacao) {
+
+        switch (tipoOrdenacao) {
+            case ORDENAR_LIKES:
+
+                Collections.sort(posts, OfflinePost.LIKES_ASC);
+
+                break;
+
+            case ORDENAR_DATA:
+                Collections.sort(posts, OfflinePost.DATE_ASC);
+                break;
+
+        }
+
+        mImageAdapter.notifyDataSetChanged();
+
     }
 
 }

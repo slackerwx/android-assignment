@@ -2,6 +2,8 @@ package slackerwx.com.br.androidassignment.db.domain;
 
 import com.j256.ormlite.field.DatabaseField;
 
+import java.util.Comparator;
+
 /**
  * Created by slackerwx on 07/07/15.
  */
@@ -12,15 +14,35 @@ public class OfflinePost {
     @DatabaseField private String userFullName;
     @DatabaseField private String userId;
     @DatabaseField private String tags;
-    @DatabaseField private String createdTime;
+    @DatabaseField private long createdTime;
+    public static final Comparator<OfflinePost> DATE_ASC = new Comparator<OfflinePost>() {
+        @Override
+        public int compare(OfflinePost lhs, OfflinePost rhs) {
+            long x = lhs.getCreatedTime();
+            long y = rhs.getCreatedTime();
+            return y < x ? -1
+                    : y > x ? 1
+                    : 0;
+        }
+    };
     @DatabaseField private String latLng;
     @DatabaseField private String locationName;
-    @DatabaseField private String likesCount;
+    @DatabaseField private int likesCount;
+    public static final Comparator<OfflinePost> LIKES_ASC = new Comparator<OfflinePost>() {
+        @Override
+        public int compare(OfflinePost lhs, OfflinePost rhs) {
+            int x = lhs.getLikesCount();
+            int y = rhs.getLikesCount();
+            return y < x ? -1
+                    : y > x ? 1
+                    : 0;
+        }
+    };
     @DatabaseField private String imageThumbnailUrl;
     @DatabaseField private String username;
 
-    public OfflinePost(String id, String imageUrl, String userFullName, String userId, String tags, String createdTime, String latLng,
-                       String locationName, String likesCount, String imageThumbnailUrl, String userName) {
+    public OfflinePost(String id, String imageUrl, String userFullName, String userId, String tags, long createdTime, String latLng,
+                       String locationName, int likesCount, String imageThumbnailUrl, String userName) {
         this.id = id;
         this.imageUrl = imageUrl;
         this.userFullName = userFullName;
@@ -55,7 +77,7 @@ public class OfflinePost {
         return tags;
     }
 
-    public String getCreatedTime() {
+    public long getCreatedTime() {
         return createdTime;
     }
 
@@ -67,7 +89,7 @@ public class OfflinePost {
         return locationName;
     }
 
-    public String getLikesCount() {
+    public int getLikesCount() {
         return likesCount;
     }
 

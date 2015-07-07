@@ -12,6 +12,7 @@ import butterknife.ButterKnife;
 import de.greenrobot.event.EventBus;
 import slackerwx.com.br.androidassignment.R;
 import slackerwx.com.br.androidassignment.db.domain.OfflinePost;
+import slackerwx.com.br.androidassignment.utils.DateUtils;
 
 public class DetalhesActivity extends ActionBarActivity {
 
@@ -56,10 +57,10 @@ public class DetalhesActivity extends ActionBarActivity {
         final String allTags = post.getTags();
         tvTags.setText(allTags);
 
-        final String likesCount = post.getLikesCount();
+        final String likesCount = String.valueOf(post.getLikesCount());
         tvLikes.setText(likesCount);
 
-        final String createdTime = post.getCreatedTime();
+        final String createdTime = DateUtils.timestampToStringDate(post.getCreatedTime());
         tvDataCriacao.setText(createdTime);
 
     }
