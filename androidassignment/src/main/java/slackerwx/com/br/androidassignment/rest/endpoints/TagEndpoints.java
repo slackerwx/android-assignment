@@ -3,7 +3,7 @@ package slackerwx.com.br.androidassignment.rest.endpoints;
 import retrofit.http.GET;
 import retrofit.http.Path;
 import retrofit.http.Query;
-import slackerwx.com.br.androidassignment.db.domain.RecentByTag;
+import slackerwx.com.br.androidassignment.rest.model.RecentByTag;
 
 /**
  * Created by slackerwx on 07/07/15.

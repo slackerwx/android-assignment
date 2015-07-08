@@ -2,11 +2,11 @@ package slackerwx.com.br.androidassignment.db;
 
 import java.util.List;
 
-import slackerwx.com.br.androidassignment.db.domain.Image;
-import slackerwx.com.br.androidassignment.db.domain.Images;
-import slackerwx.com.br.androidassignment.db.domain.Location;
-import slackerwx.com.br.androidassignment.db.domain.Media;
 import slackerwx.com.br.androidassignment.db.domain.OfflinePost;
+import slackerwx.com.br.androidassignment.rest.model.Image;
+import slackerwx.com.br.androidassignment.rest.model.Images;
+import slackerwx.com.br.androidassignment.rest.model.Location;
+import slackerwx.com.br.androidassignment.rest.model.Media;
 
 /**
  * Created by jake on 07/07/15.
@@ -33,15 +33,18 @@ public class OfflinePostMapping {
 
         String latLng = "";
         String locationName = "";
+        double latitude = 0;
+        double longitude = 0;
         if (location != null) {
             locationName = location.getName();
 
             Double lat = location.getLatitude();
             Double longi = location.getLongitude();
 
-            final String latitude = lat != null ? Double.toString(lat) : "";
-            final String longitude = longi != null ? Double.toString(longi) : "";
-            latLng = latitude + " " + longitude;
+            latitude = lat != null ? lat : 0;
+            longitude = longi != null ? longi : 0;
+
+            latLng = Double.toString(latitude) + " " + Double.toString(longitude);
         }
 
 
@@ -63,7 +66,8 @@ public class OfflinePostMapping {
         final String username = media.getUser().getUsername();
         final String id = media.getId();
 
+
         return new OfflinePost(id, imageUrl, userFullName, userId, allTags, createdTime, latLng, locationName, likesCount,
-                imageThumbnailUrl, username);
+                imageThumbnailUrl, username, latitude, longitude);
     }
 }

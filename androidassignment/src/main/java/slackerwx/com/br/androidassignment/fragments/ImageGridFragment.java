@@ -1,8 +1,14 @@
 package slackerwx.com.br.androidassignment.fragments;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,18 +32,21 @@ import slackerwx.com.br.androidassignment.activities.OnMediaClickEvent;
 import slackerwx.com.br.androidassignment.adapters.ImageAdapter;
 import slackerwx.com.br.androidassignment.db.OfflinePostMapping;
 import slackerwx.com.br.androidassignment.db.bo.OfflinePostBo;
-import slackerwx.com.br.androidassignment.db.domain.Media;
 import slackerwx.com.br.androidassignment.db.domain.OfflinePost;
-import slackerwx.com.br.androidassignment.db.domain.RecentByTag;
+import slackerwx.com.br.androidassignment.rest.Pagination;
 import slackerwx.com.br.androidassignment.rest.ServiceGenerator;
 import slackerwx.com.br.androidassignment.rest.Transacao;
 import slackerwx.com.br.androidassignment.rest.TransacaoTask;
 import slackerwx.com.br.androidassignment.rest.endpoints.TagEndpoints;
+import slackerwx.com.br.androidassignment.rest.model.Media;
+import slackerwx.com.br.androidassignment.rest.model.RecentByTag;
+import slackerwx.com.br.androidassignment.utils.LocationUtils;
+import slackerwx.com.br.androidassignment.utils.SharedPreferencesUtils;
 
 /**
  * Created by slackerwx on 07/07/15.
  */
-public class FragmentHome extends Fragment implements Transacao {
+public class ImageGridFragment extends Fragment implements Transacao, LocationListener {
 
     private static final String MODO_EXIBICAO = "modoExibicao";
     private static final int ORDENAR_LIKES = 0;
@@ -49,14 +58,20 @@ public class FragmentHome extends Fragment implements Transacao {
     private ImageAdapter mImageAdapter;
     private ArrayList<OfflinePost> posts = new ArrayList<>();
     private String tipoExibicao;
+    private RecentByTag mRecentByTagSearch;
+    private TagEndpoints mTagEndpointsClient;
+    private String minTagId;
+    private String maxTagId;
+
+    private LocationManager locationManager;
 
 
-    public FragmentHome() {
+    public ImageGridFragment() {
 
     }
 
     public static Fragment newInstance(String modoExibicao) {
-        FragmentHome f = new FragmentHome();
+        ImageGridFragment f = new ImageGridFragment();
 
         Bundle args = new Bundle();
         args.putString(MODO_EXIBICAO, modoExibicao);
@@ -70,7 +85,13 @@ public class FragmentHome extends Fragment implements Transacao {
         setHasOptionsMenu(true);
 
         Bundle arguments = getArguments();
+
         tipoExibicao = arguments.getString(MODO_EXIBICAO);
+
+        mTagEndpointsClient = ServiceGenerator.createService(TagEndpoints.class, Constants.APIURL);
+
+        TransacaoTask task = new TransacaoTask(getActivity(), this, mProgressBar);
+        task.execute();
     }
 
     @Override
@@ -79,15 +100,38 @@ public class FragmentHome extends Fragment implements Transacao {
 
         ButterKnife.bind(this, rootView);
 
+        mGridView.setOnScrollListener(new EndlessScrollListener() {
+
+            public int totalItemsCount;
+
+            @Override
+            public void onLoadMore(int page, int totalItemsCount) {
+                this.totalItemsCount = totalItemsCount;
+
+                TransacaoTask task = new TransacaoTask(getActivity(), this);
+                task.execute();
+            }
+
+            @Override
+            public void executar() throws Exception {
+                Pagination pagination = mRecentByTagSearch.getPagination();
+                minTagId = pagination.getNextMinTagId();
+                maxTagId = pagination.getNextMaxTagId();
+
+                ArrayList<Media> moreMedias = getMedias(minTagId, maxTagId);
+                ArrayList<OfflinePost> moreOfflinePosts = mediaListToOfflinePosts(moreMedias);
+
+                posts.addAll(totalItemsCount, moreOfflinePosts);
+
+            }
+
+            @Override
+            public void atualizarView() {
+                mImageAdapter.notifyDataSetChanged();
+            }
+        });
+
         return rootView;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        TransacaoTask task = new TransacaoTask(getActivity(), this, mProgressBar);
-        task.execute();
     }
 
 
@@ -109,14 +153,8 @@ public class FragmentHome extends Fragment implements Transacao {
 
         switch (tipoExibicao) {
             case Constants.ONLINE:
-                TagEndpoints client = ServiceGenerator.createService(TagEndpoints.class, Constants.APIURL);
 
-                String clientId = getResources().getString(R.string.instagram_client_id);
-
-                String tagName = "saopaulocity";
-                RecentByTag search = client.getRecent(tagName, clientId, null, null);
-
-                ArrayList<Media> mediaList = (ArrayList<Media>) search.getMediaList();
+                ArrayList<Media> mediaList = getMedias(minTagId, maxTagId);
 
                 posts = mediaListToOfflinePosts(mediaList);
                 break;
@@ -131,6 +169,17 @@ public class FragmentHome extends Fragment implements Transacao {
 
     }
 
+    private ArrayList<Media> getMedias(String minId, String maxId) {
+        String clientId = getResources().getString(R.string.instagram_client_id);
+
+        String tagName = "saopaulocity";
+        mRecentByTagSearch = mTagEndpointsClient.getRecent(tagName, clientId, minId, maxId);
+
+        ArrayList<Media> mediaList = (ArrayList<Media>) mRecentByTagSearch.getMediaList();
+
+        return mediaList;
+    }
+
 
     private ArrayList<OfflinePost> mediaListToOfflinePosts(ArrayList<Media> mediaList) {
 
@@ -142,7 +191,6 @@ public class FragmentHome extends Fragment implements Transacao {
         }
 
         return posts;
-
     }
 
 
@@ -190,19 +238,77 @@ public class FragmentHome extends Fragment implements Transacao {
 
         switch (tipoOrdenacao) {
             case ORDENAR_LIKES:
-
                 Collections.sort(posts, OfflinePost.LIKES_ASC);
-
                 break;
-
             case ORDENAR_DATA:
                 Collections.sort(posts, OfflinePost.DATE_ASC);
                 break;
+            case ORDENAR_DISTANCIA:
+                locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 
+                    Location location = LocationUtils.getLatestLocation(getActivity());
+                    if (location == null) {
+                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, this);
+                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
+                    }
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(String.valueOf(location.getLatitude()));
+                    sb.append(" ");
+                    sb.append(String.valueOf(location.getLongitude()));
+
+                    SharedPreferencesUtils.putLatLngAtual(sb.toString());
+
+                    Collections.sort(posts, OfflinePost.DISTANCE_DESC);
+                } else {
+                    ligarGPS();
+                }
         }
 
         mImageAdapter.notifyDataSetChanged();
 
     }
 
+    private void ligarGPS() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity());
+        alertDialogBuilder.setMessage("O GPS está desligado, deseja ligar agora?").setCancelable(false)
+                .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        // Intent para entrar nas configurações de localização
+                        Intent callGPSSettingIntent = new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(callGPSSettingIntent);
+                        getActivity().finish();
+                    }
+                });
+        alertDialogBuilder.setNegativeButton("Não", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.cancel();
+                getActivity().finish();
+            }
+        });
+
+        AlertDialog alert = alertDialogBuilder.create();
+        alert.show();
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 }

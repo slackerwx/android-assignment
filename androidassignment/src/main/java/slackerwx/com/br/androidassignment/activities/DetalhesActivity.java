@@ -13,6 +13,8 @@ import de.greenrobot.event.EventBus;
 import slackerwx.com.br.androidassignment.R;
 import slackerwx.com.br.androidassignment.db.domain.OfflinePost;
 import slackerwx.com.br.androidassignment.utils.DateUtils;
+import slackerwx.com.br.androidassignment.utils.SharedPreferencesUtils;
+import slackerwx.com.br.androidassignment.utils.Utils;
 
 public class DetalhesActivity extends ActionBarActivity {
 
@@ -24,6 +26,7 @@ public class DetalhesActivity extends ActionBarActivity {
     @Bind(R.id.tv_user_id) TextView tvUserId;
     @Bind(R.id.tv_likes) TextView tvLikes;
     @Bind(R.id.tv_data_criacao) TextView tvDataCriacao;
+    @Bind(R.id.tv_distancia) TextView tvDistancia;
     private OfflinePost post;
 
     @Override
@@ -63,6 +66,26 @@ public class DetalhesActivity extends ActionBarActivity {
         final String createdTime = DateUtils.timestampToStringDate(post.getCreatedTime());
         tvDataCriacao.setText(createdTime);
 
+        final String distancia = getDistancia();
+        tvDistancia.setText(distancia);
+
+    }
+
+    private String getDistancia() {
+        String latLngAtual = SharedPreferencesUtils.getLatLngAtual();
+
+        String[] split = latLngAtual.split(" ");
+        double mLatAtual = Double.valueOf(split[0]);
+        double mLongAtual = Double.valueOf(split[1]);
+
+
+        final double distancia = Utils.getDistanceFromLocation(mLatAtual, mLongAtual, post.getLatitude(), post.getLongitude(), 'K');
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.valueOf(Math.round(distancia)));
+        sb.append(" km");
+
+        return sb.toString();
     }
 
 

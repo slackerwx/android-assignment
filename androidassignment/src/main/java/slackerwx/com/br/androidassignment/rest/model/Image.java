@@ -1,4 +1,4 @@
-package slackerwx.com.br.androidassignment.db.domain;
+package slackerwx.com.br.androidassignment.rest.model;
 
 import java.io.Serializable;
 

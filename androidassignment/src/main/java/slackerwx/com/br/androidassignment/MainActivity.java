@@ -14,7 +14,7 @@ import android.view.View;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import slackerwx.com.br.androidassignment.fragments.FragmentHome;
+import slackerwx.com.br.androidassignment.fragments.ImageGridFragment;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -48,10 +48,10 @@ public class MainActivity extends AppCompatActivity {
                 Fragment f = null;
                 switch (id) {
                     case R.id.navItemHome:
-                        f = FragmentHome.newInstance(Constants.ONLINE);
+                        f = ImageGridFragment.newInstance(Constants.ONLINE);
                         break;
                     case R.id.navItemOffline:
-                        f = FragmentHome.newInstance(Constants.OFFLINE);
+                        f = ImageGridFragment.newInstance(Constants.OFFLINE);
                         break;
 
                 }
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.main_activity_container, FragmentHome.newInstance(Constants.ONLINE));
+        ft.replace(R.id.main_activity_container, ImageGridFragment.newInstance(Constants.ONLINE));
         ft.commit();
 
 

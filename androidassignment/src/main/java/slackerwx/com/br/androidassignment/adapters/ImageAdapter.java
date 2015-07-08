@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,33 +20,18 @@ import slackerwx.com.br.androidassignment.utils.ImageUtils;
 /**
  * Created by slackerwx on 06/07/15.
  */
-public class ImageAdapter extends BaseAdapter {
+public class ImageAdapter extends Adapter<OfflinePost> {
 
     private final Context context;
     private ArrayList<OfflinePost> items = new ArrayList<>();
     private LayoutInflater inflater;
 
     public ImageAdapter(Context context, ArrayList<OfflinePost> imagens) {
+        super(context, imagens);
         this.context = context;
         this.items = imagens;
 
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    }
-
-
-    @Override
-    public int getCount() {
-        return items.size();
-    }
-
-    @Override
-    public Object getItem(int position) {
-        return items.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return 0;
     }
 
     @Override
@@ -80,7 +64,9 @@ public class ImageAdapter extends BaseAdapter {
 
         public void preencher(OfflinePost post, Context context) {
             String url = post.getImageThumbnailUrl();
-            Glide.with(context).load(url).into(imageView);
+            Glide.with(context)
+                    .load(url)
+                    .into(imageView);
 
             ImageUtils.imageViewToGrayScale(imageView);
 
