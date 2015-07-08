@@ -52,6 +52,9 @@ public class ImageGridFragment extends Fragment implements Transacao, LocationLi
     private static final int ORDENAR_LIKES = 0;
     private static final int ORDENAR_DATA = 1;
     private static final int ORDENAR_DISTANCIA = 2;
+
+    private boolean POSSUI_LOCALIZACAO = false;
+
     @Bind(R.id.gridview) GridView mGridView;
     @Bind(R.id.loading_circular) ProgressBar mProgressBar;
     private int tipoOrdenacao = ORDENAR_LIKES;
@@ -90,8 +93,14 @@ public class ImageGridFragment extends Fragment implements Transacao, LocationLi
 
         mTagEndpointsClient = ServiceGenerator.createService(TagEndpoints.class, Constants.APIURL);
 
-        TransacaoTask task = new TransacaoTask(getActivity(), this, mProgressBar);
-        task.execute();
+
+        buscarLocalizacaoAtual();
+
+        if(POSSUI_LOCALIZACAO) {
+            TransacaoTask task = new TransacaoTask(getActivity(), this, mProgressBar);
+            task.execute();
+        }
+
     }
 
     @Override
@@ -108,8 +117,10 @@ public class ImageGridFragment extends Fragment implements Transacao, LocationLi
             public void onLoadMore(int page, int totalItemsCount) {
                 this.totalItemsCount = totalItemsCount;
 
-                TransacaoTask task = new TransacaoTask(getActivity(), this);
-                task.execute();
+                if(POSSUI_LOCALIZACAO) {
+                    TransacaoTask task = new TransacaoTask(getActivity(), this);
+                    task.execute();
+                }
             }
 
             @Override
@@ -187,7 +198,7 @@ public class ImageGridFragment extends Fragment implements Transacao, LocationLi
 
         for (Media media : mediaList) {
             OfflinePost post = OfflinePostMapping.getInstance().getOfflinePost(media);
-            posts.add(post);
+            if(post!=null) posts.add(post);
         }
 
         return posts;
@@ -244,30 +255,37 @@ public class ImageGridFragment extends Fragment implements Transacao, LocationLi
                 Collections.sort(posts, OfflinePost.DATE_ASC);
                 break;
             case ORDENAR_DISTANCIA:
-                locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-                if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-
-                    Location location = LocationUtils.getLatestLocation(getActivity());
-                    if (location == null) {
-                        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, this);
-                        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
-                    }
-
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(String.valueOf(location.getLatitude()));
-                    sb.append(" ");
-                    sb.append(String.valueOf(location.getLongitude()));
-
-                    SharedPreferencesUtils.putLatLngAtual(sb.toString());
-
-                    Collections.sort(posts, OfflinePost.DISTANCE_DESC);
-                } else {
-                    ligarGPS();
-                }
+                Collections.sort(posts, OfflinePost.DISTANCE_DESC);
+                break;
         }
 
         mImageAdapter.notifyDataSetChanged();
 
+    }
+
+    private void buscarLocalizacaoAtual(){
+        locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+
+            Location location = LocationUtils.getLatestLocation(getActivity());
+            if (location == null) {
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 1, this);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1, this);
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(String.valueOf(location.getLatitude()));
+            sb.append(" ");
+            sb.append(String.valueOf(location.getLongitude()));
+
+            SharedPreferencesUtils.putLatLngAtual(sb.toString());
+
+            POSSUI_LOCALIZACAO = true;
+
+        } else {
+            ligarGPS();
+            POSSUI_LOCALIZACAO = false;
+        }
     }
 
     private void ligarGPS() {

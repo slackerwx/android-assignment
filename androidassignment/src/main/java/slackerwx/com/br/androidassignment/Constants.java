@@ -12,5 +12,9 @@ public class Constants {
     public static final String LAT_LNG_ATUAL = "latitudeAtual";
     private static final String AUTHURL = "https://api.instagram.com/oauth/authorize/";
     private static final String TOKENURL = "https://api.instagram.com/oauth/access_token";
+
     public static String CALLBACKURL = "http://localhost";
+
+    //20km
+    public static final int DISTANCIA_MAXIMA = 20;
 }

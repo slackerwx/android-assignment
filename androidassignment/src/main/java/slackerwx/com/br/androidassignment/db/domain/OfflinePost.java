@@ -18,57 +18,14 @@ public class OfflinePost {
     @DatabaseField private String userId;
     @DatabaseField private String tags;
     @DatabaseField private long createdTime;
-    public static final Comparator<OfflinePost> DATE_ASC = new Comparator<OfflinePost>() {
-        @Override
-        public int compare(OfflinePost lhs, OfflinePost rhs) {
-            long x = lhs.getCreatedTime();
-            long y = rhs.getCreatedTime();
-            return y < x ? -1
-                    : y > x ? 1
-                    : 0;
-        }
-    };
     @DatabaseField private String latLng;
     @DatabaseField private String locationName;
     @DatabaseField private int likesCount;
-    public static final Comparator<OfflinePost> LIKES_ASC = new Comparator<OfflinePost>() {
-        @Override
-        public int compare(OfflinePost lhs, OfflinePost rhs) {
-            int x = lhs.getLikesCount();
-            int y = rhs.getLikesCount();
-            return y < x ? -1
-                    : y > x ? 1
-                    : 0;
-        }
-    };
     @DatabaseField private String imageThumbnailUrl;
     @DatabaseField private String username;
     @DatabaseField private double latitude;
     @DatabaseField private double longitude;
-    public static final Comparator<OfflinePost> DISTANCE_DESC = new Comparator<OfflinePost>() {
 
-        @Override
-        public int compare(OfflinePost lhs, OfflinePost rhs) {
-            double mLhsMediaLocationLat = lhs.getLatitude();
-            double mLhsMediaLocationLong = lhs.getLongitude();
-
-            double mRhsMediaLocationLat = rhs.getLatitude();
-            double mRhsMediaLocationLong = rhs.getLongitude();
-
-            String latLngAtual = SharedPreferencesUtils.getLatLngAtual();
-
-            String[] split = latLngAtual.split(" ");
-            double mLatAtual = Double.valueOf(split[0]);
-            double mLongAtual = Double.valueOf(split[1]);
-
-
-            double x = Utils.getDistanceFromLocation(mLatAtual, mLongAtual, mLhsMediaLocationLat, mLhsMediaLocationLong, 'K');
-            double y = Utils.getDistanceFromLocation(mLatAtual, mLongAtual, mRhsMediaLocationLat, mRhsMediaLocationLong, 'K');
-            return x < y ? -1
-                    : x > y ? 1
-                    : 0;
-        }
-    };
 
     public OfflinePost(String id, String imageUrl, String userFullName, String userId, String tags, long createdTime, String latLng,
                        String locationName, int likesCount, String imageThumbnailUrl, String userName, double latitude, double longitude) {
@@ -140,5 +97,50 @@ public class OfflinePost {
         return longitude;
     }
 
+    public static final Comparator<OfflinePost> DATE_ASC = new Comparator<OfflinePost>() {
+        @Override
+        public int compare(OfflinePost lhs, OfflinePost rhs) {
+            long x = lhs.getCreatedTime();
+            long y = rhs.getCreatedTime();
+            return y < x ? -1
+                    : y > x ? 1
+                    : 0;
+        }
+    };
 
+    public static final Comparator<OfflinePost> LIKES_ASC = new Comparator<OfflinePost>() {
+        @Override
+        public int compare(OfflinePost lhs, OfflinePost rhs) {
+            int x = lhs.getLikesCount();
+            int y = rhs.getLikesCount();
+            return y < x ? -1
+                    : y > x ? 1
+                    : 0;
+        }
+    };
+
+    public static final Comparator<OfflinePost> DISTANCE_DESC = new Comparator<OfflinePost>() {
+
+        @Override
+        public int compare(OfflinePost lhs, OfflinePost rhs) {
+            double mLhsMediaLocationLat = lhs.getLatitude();
+            double mLhsMediaLocationLong = lhs.getLongitude();
+
+            double mRhsMediaLocationLat = rhs.getLatitude();
+            double mRhsMediaLocationLong = rhs.getLongitude();
+
+            String latLngAtual = SharedPreferencesUtils.getLatLngAtual();
+
+            String[] split = latLngAtual.split(" ");
+            double mLatAtual = Double.valueOf(split[0]);
+            double mLongAtual = Double.valueOf(split[1]);
+
+
+            double x = Utils.getDistanceFromLocation(mLatAtual, mLongAtual, mLhsMediaLocationLat, mLhsMediaLocationLong, 'K');
+            double y = Utils.getDistanceFromLocation(mLatAtual, mLongAtual, mRhsMediaLocationLat, mRhsMediaLocationLong, 'K');
+            return x < y ? -1
+                    : x > y ? 1
+                    : 0;
+        }
+    };
 }
